@@ -1580,7 +1580,7 @@ textarea::placeholder {
 /*===========================
 11.0 *** BLOG AREA START ***
 =============================*/
-#blog {
+#airdrop {
     padding: 80px 0;
 }
 
@@ -1643,11 +1643,28 @@ textarea::placeholder {
     padding-bottom: 25px;
 }
 
-.search-btn {
-    width: 60px;
+.claim-airdrop {
+    margin-top: 20px;
+    padding: 30px 0;
     background: #ff7657;
+    border-radius: 50px;
+    margin-bottom: 20px;
+}
+
+.claim-airdrop h3 {
+    padding-left: 60px;
+    font-size: 26px;
     color: white;
-    border: 1px solid #ff7657;
+    font-family: pb;
+}
+
+.claim-airdrop a {
+    background: white;
+    padding: 15px 25px;
+    border-radius: 50px;
+    font-family: pb;
+    color: #ff7657;
+    font-size: 18px;
 }
 
 /*===========================
@@ -1973,4 +1990,21 @@ textarea::placeholder {
 /* Optional: Style for hover state */
 .address-container button:hover {
     background-color: #e0e0e0; /* Slightly lighter grey for hover state */
+}
+
+.airdropNumber, .airdropNumber2 {
+    color: #ff7657;
+    font-weight: bold;
+    padding-left: 25px;
+    padding-right: 25px;
+}
+
+.airdropNumber {
+    color: #ff7657;
+    font-size: 1.5em;
+}
+
+.airdropNumber2 {
+    color: #151515;
+    font-size: 1em;
 }

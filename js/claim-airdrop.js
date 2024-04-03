@@ -1,6 +1,8 @@
 import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi';
 import { base, baseSepolia, sepolia } from 'viem/chains';
 import { reconnect, watchAccount, disconnect, getAccount, readContract, writeContract, waitForTransactionReceipt } from '@wagmi/core';
+import bootstrap from 'bootstrap';
+// import { Fireworks } from 'fireworks-js';
 
 // 1. Get a project ID at https://cloud.walletconnect.com
 let projectId, activeNetwork, contractAddress, webAddress, turnstileSiteKey;
@@ -77,8 +79,8 @@ function connect(param = 'dark') {
         disconnect(config);
 
         // Clear the display information
-        document.getElementById('claimAirdrop').innerText = 'Check Your Account';
-        document.getElementById('airdropMessage').innerText = 'Press the button above to check for airdrop.';
+        document.getElementById('claimAirdrop').innerText = 'Check Your Eligibility';
+        //document.getElementById('airdropMessage').innerText = 'Press the button above to check for airdrop.';
     } else {
         modal.setThemeMode(param);
         modal.open();
@@ -88,10 +90,12 @@ function connect(param = 'dark') {
 const connectBtn = document.getElementById('connectWallet');
 const hint1 = document.getElementById('walletAddressHint1');
 const hint2 = document.getElementById('walletAddressHint2');
+const airdropHint1 = document.getElementById('airdropHint1');
 const acceptBtn = document.getElementById('connectAccept');
 const declineBtn = document.getElementById('connectDecline');
 const connectTitle = document.getElementById('walletAddressTitle');
-const airdrop = document.getElementById('airdrop');
+const airdrop = document.getElementById('airdropSection');
+const gotoAirdrop = document.getElementById('gotoSection');
 
 if (acceptBtn) {
     acceptBtn.addEventListener('click', function() {
@@ -122,12 +126,20 @@ return str.replace(/&/g, "&amp;")
 watchAccount(config,
     {
         onChange(account) {
+            let truncatedAddress;
             if (hint2) {
                 let address = account.address ?? '';
-                let truncatedAddress = address; // Adjust this if you want to show a truncated address
+                // Check if the username length exceeds 15 characters
+                if (address.length > 15) {
+                    // Truncate the username to the first 5 characters, an ellipsis, and the last 5 characters
+                    truncatedAddress = address.substring(0, 5) + '...' + address.substring(address.length - 5);
+                } else {
+                    // If the username is 15 characters or less, use it as is
+                    truncatedAddress = address;
+                }
 
                 let addressHtml = '<div class="address-container">';
-                addressHtml += '<input id="address" type="text" value="' + escapeHtml(truncatedAddress) + '" readonly data-full-address="' + escapeHtml(address) + '">';
+                addressHtml += '<input id="address" type="text" value="' + escapeHtml(address) + '" readonly data-full-address="' + escapeHtml(address) + '">';
                 addressHtml += '<button onclick="copyAddress(event)"><i class="fa fa-copy"></i></button>';
                 addressHtml += '</div>';
 
@@ -137,18 +149,25 @@ watchAccount(config,
                 if (account.isConnected) {
                     hint1.innerText = 'Your wallet address is:';
                     acceptBtn.innerText = 'Disconnect';
-                    connectBtn.innerText = 'Airdrop';
+                    connectBtn.innerText = truncatedAddress;
                     connectTitle.innerText = 'Account Information';
                     declineBtn.innerText = 'Close';
                     airdrop.style.display = 'block';
+                    // TODO: Temporarily disable this button
+                    gotoAirdrop.style.display = 'none';
+                    // Hide the continue button after connecting the wallet
+                    airdropHint1.style.display = 'none';
                 } else {
                     hint1.innerHTML = 'To continue, please connect your Web3 wallet, such as <a href="https://metamask.io/" target="_blank" rel="noopener noreferrer">MetaMask</a> or <a href="https://walletconnect.org/" target="_blank" rel="noopener noreferrer">WalletConnect</a>. This allows our website to securely interact with your wallet.';
                     hint2.innerHTML = 'By clicking "Accept and Continue", you agree to our <a href="#" data-toggle="modal" data-target="#termsModal">terms and conditions</a> and <a href="#" data-toggle="modal" data-target="#privacyModal">privacy policy</a>. You will be prompted to connect your wallet via an external link. Ensure you\'re using a trusted and secure wallet service.';
                     acceptBtn.innerText = 'Accept and Continue';
-                    connectBtn.innerText = 'Airdrop';
+                    connectBtn.innerText = 'Connect';
                     connectTitle.innerText = 'Notes Before Connecting';
                     declineBtn.innerText = 'Decline';
                     airdrop.style.display = 'none';
+                    gotoAirdrop.style.display = 'none';
+                    // Show the continue button before connecting the wallet
+                    airdropHint1.style.display = 'block';
                 }
             }
         }
@@ -191,6 +210,7 @@ async function initiateTransaction() {
 
         // Acquire full address from the DOM element
         const fullAddress = document.getElementById('address').getAttribute('data-full-address');
+        console.log('Full Address:', fullAddress);
 
         const contractReadResult = await readContract(config, {
             abi: airdropAcquireABI,
@@ -201,7 +221,7 @@ async function initiateTransaction() {
 
         console.log('Airdrop Amount:', contractReadResult);
         updateProgressBar(50, 'green');
-        if (contractReadResult === 0) {
+        if (contractReadResult === BigInt(0)) {
             displayMessage('You have already claimed your airdrop.', 'info');
             updateProgressBar(100, 'red');
         } else {
@@ -255,9 +275,24 @@ async function confirmTransaction() {
 
         console.log('Transaction Receipt:', transactionReceipt);
         if (transactionReceipt && transactionReceipt.status === 'success') {
-            displayMessage('Transaction successful! You can close this window now.', 'success');
+            displayMessage('Transaction successful! Check Your Wallet For Airdrop', 'success');
             updateProgressBar(100, 'green');
-            document.getElementById('claimAirdrop').textContent = 'Check Your Account';
+            document.getElementById('claimAirdrop').textContent = 'Check Your Eligibility';
+
+            var modal = document.getElementById('connectModal2');
+
+            // Show the modal
+            var bootstrapModal = new bootstrap.Modal(modal, {
+                keyboard: false
+            });
+            bootstrapModal.show();
+
+            // Set a timeout to close the modal after 5 seconds
+            setTimeout(function() {
+                bootstrapModal.hide();
+            }, 5000);
+            // TODO: Show fireworks animation for 10 seconds
+            //startFireworksForDuration(10000);
         } else {
             displayMessage('Transaction failed', 'error');
             updateProgressBar(100, 'red');
@@ -291,7 +326,7 @@ function displayMessage(message, type) {
 
 function updateProgressBar(percentage, color) {
     // Select the progress bar element
-    const progressBar = document.querySelector('.progress-bar');
+    const progressBar = document.getElementById('current-progress');
     
     if (progressBar) {
         // Update the width, aria-valuenow, and text content
@@ -403,32 +438,34 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     if (claimAirdropButton) {
-        if (claimAirdropButton.textContent === 'Check Your Account') {
-            document.getElementById('airdropMessage').innerText = 'Press the button above to check for airdrop.';
-        } else if (claimAirdropButton.textContent === 'Claim Your Airdrop') {
+        if (claimAirdropButton.textContent === 'Claim Your Airdrop') {
             document.getElementById('airdropMessage').innerText = 'Press the button above to claim your airdrop.';
         } else if (claimAirdropButton.textContent === 'Confirm Your Airdrop') {
             document.getElementById('airdropMessage').innerText = 'Press the button above to confirm your airdrop.';
         }
 
         claimAirdropButton.addEventListener('click', function handleButtonClick() {
-            if (!isLocal) {
-                var response = document.querySelector('[name="cf-turnstile-response"]').value;
-                if (response) {
-                    proceedWithAction(claimAirdropButton); // Proceed after CAPTCHA validation
-                } else {
-                    displayMessage('Please complete the CAPTCHA', 'error');
-                }
+            if (connectBtn.textContent === 'Connect') {
+                airdropHint1.innerText = 'You need to connect your wallet first!';
             } else {
-                console.log('Running locally, skipping CloudFlare Turnstile verification');
-                proceedWithAction(claimAirdropButton); // Directly proceed as it's a local environment
+                if (!isLocal) {
+                    var response = document.querySelector('[name="cf-turnstile-response"]').value;
+                    if (response) {
+                        proceedWithAction(claimAirdropButton); // Proceed after CAPTCHA validation
+                    } else {
+                        displayMessage('Please complete the CAPTCHA', 'error');
+                    }
+                } else {
+                    console.log('Running locally, skipping CloudFlare Turnstile verification');
+                    proceedWithAction(claimAirdropButton); // Directly proceed as it's a local environment
+                }
             }
         });
     }
 });
 
 function proceedWithAction(button) {
-    if (button.textContent === 'Check Your Account') {
+    if (button.textContent === 'Check Your Eligibility') {
         checkUserEligibility();
     } else if (button.textContent === 'Claim Your Airdrop') {
         initiateTransaction();
@@ -436,3 +473,15 @@ function proceedWithAction(button) {
         confirmTransaction();
     }
 }
+
+// function startFireworksForDuration(duration) {
+//     const container = document.querySelector('.container');
+//     const options = { /* Customize options for fireworks */ };
+//     const fireworks = new Fireworks(container, options);
+//     fireworks.start();
+
+//     // Stop fireworks after the specified duration
+//     setTimeout(() => {
+//         fireworks.stop();
+//     }, duration);
+// }
