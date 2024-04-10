@@ -39,7 +39,15 @@ document.getElementById('contactForm').addEventListener('submit', function(event
         var successMessageDiv = document.getElementById('messageSuccess');
         successMessageDiv.textContent = "Your action was successfully completed! We'll reply to you soon.";
         successMessageDiv.style.display = 'block';
-        document.getElementById('contactForm').submit();
+        // Email sending for subscription
+        sendSubscriptionEmail(userEmail)
+            .then(() => {
+                console.log('Email sent successfully');
+                document.getElementById('contactForm').submit(); // Submit the form after the email is sent
+            })
+            .catch(error => {
+                console.log('Failed to send email: ' + error);
+            });
 
         setTimeout(function() {
             successMessageDiv.style.display = 'none';
@@ -66,7 +74,58 @@ document.getElementById('subscriptionForm').addEventListener('submit', function(
     else {
         // If email is valid
         document.getElementById('subscriptionSuccess').textContent = 'Email is valid! Proceeding with subscription.';
-        // Add form submission logic here if needed
-        document.getElementById('subscriptionForm').submit();
+        // Email sending for subscription
+        sendSubscriptionEmail(email)
+            .then(() => {
+                console.log('Email sent successfully');
+                document.getElementById('subscriptionForm').submit(); // Submit the form after the email is sent
+            })
+            .catch(error => {
+                console.log('Failed to send email: ' + error);
+            });
     }
 });
+
+// Get an email token at https://emailjs.com/
+function loadConfig() {
+    return fetch('../contract-config.json')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Failed to load configuration.");
+            }
+            return response.json();
+        });
+}
+
+function sendSubscriptionEmail(userEmail) {
+    return Promise.all([
+        loadConfig(),
+        fetch('../email/index.html').then(response => response.text())
+    ])
+    .then(([config, htmlBody]) => {
+        const templateParams = {
+            to_email: userEmail,
+            reply_to: userEmail,
+            message_html: htmlBody
+        };
+
+        return fetch('https://api.emailjs.com/api/v1.0/email/send', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                service_id: 'lotso_email',
+                template_id: 'lotso_email_template',
+                user_id: config.emailToken,
+                template_params: templateParams,
+            })
+        });
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to send email');
+        }
+        return response;
+    });
+}
