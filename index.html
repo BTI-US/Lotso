@@ -79,7 +79,7 @@
                         <a class="nav-link" href="#product">Enpower</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#review">Partner</a>
+                        <a class="nav-link" href="#partner">Partner</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link bor" id="connectWallet" href="#" data-toggle="modal" data-target="#connectModal">Connect</a>
@@ -216,7 +216,10 @@
                         <div class="modal-body">
                             <form>
                                 <div class="info-txt">
-                                    <div>Congratulations! You have claimed <span id="congratulation-message"></span> $Lotso, check on your wallet.</div>
+                                    <p>Congratulations! You have claimed <span id="congratulation-message"></span> $Lotso, check on your wallet.</p>
+                                    <p>Click the following button to generate a promotion code:</p>
+                                    <button type="button" id="generatePromotionButton" class="dropboxx2">Generate Promotion Code</button>
+                                    <div id="promotionCodeInfo"></div>
                                 </div>
                             </form>
                         </div>
@@ -574,6 +577,141 @@
     </section>
     <!-- FEATURE AREA ENDS -->
 
+    <!-- FOLLOW AREA START -->
+    <section id="follow">
+        <div class="container">
+            <div class="row header-text text-center">
+                <div class="col-lg-12">
+                    <h3>FOLLOW <span>U</span>S</h3>
+                </div>
+            </div>
+            
+            <div class="row price-pa">
+                <div class="container" id="twitterAuth">
+                    <div class="row">
+                        <div class="col-lg-10 m-auto">
+                            <div class="sub-main">
+                                <div class="row">
+                                    <div class="col-lg-8 col-md-7">
+                                        <h3>Authorize Your Twitter to Unlock</h3>
+                                    </div>
+                                    <div class="col-lg-4 col-md-5 subscripe-btn">
+                                        <a href="javascript:void(0);" id="start-auth"><i class="fa fa-twitter" aria-hidden="true"></i> Authorize</a>
+                                    </div>
+                                </div>
+                            </div>                            
+                            <div class="info-txt">
+                                <div id="twitterAuthMessage"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="container" id="promotionCodeInput" style="display: none;">
+                    <div class="row">
+                        <div class="col-lg-8 col-md-10 m-md-auto blog-text">
+                            <form>
+                                <div class="input-group contact-input mb-3">
+                                    <input id="promotion-code-input" type="text" class="form-control box-bg" placeholder="Input promotion code here..." aria-label="Username">
+                                    <button type="button" id="promotion-code-check-btn" class="check-btn" onclick="checkPromotionCode(event)"><i class="fa fa-arrow-down" aria-hidden="true"></i></button>
+                                </div>
+                                <div id="promotion-input-error" class="error-message"></div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div id="retweet-section" class="col-lg-3 col-sm-6 mob-mar-bottom disabled">
+                    <div class="price-table gold-bg">
+                        <h3><sub>Step 1</sub></h3>
+                        <h3 class="gold">Repost Our Tweet #1</h3>
+                        <div id="retweet-progress" class="counter-1 progress-cycle" style="display: none;">
+                            <div class="chart" data-percent="0"></div>
+                            <h5>0%</h5>
+                            <span>Reposting Tweet #1</span>
+                        </div>
+                        <div id="retweet-info">
+                            <p><i class="fa fa-check-circle-o" aria-hidden="true"></i> Verified Twitter Account</p>
+                            <p><i class="fa fa-check-circle-o" aria-hidden="true"></i> Repost Our Tweet</p>
+                            <p><i class="fa fa-check-circle-o" aria-hidden="true"></i> Task Completed</p>
+                        </div>
+                        <div class="price-btn gold-bg2 text-center">
+                            <a href="javascript:void(0);" id="retweet"><i class="fa fa-twitter" aria-hidden="true"></i> Repost</a>
+                        </div>
+                    </div>
+                    <div class="info-txt middle-align">
+                        <div id="repostMessage"></div>
+                    </div>
+                </div>
+                <div id="retweet-section-2" class="col-lg-3 col-sm-6 mob-mar-bottom disabled">
+                    <div class="price-table">
+                        <h3><sub>Step 2</sub></h3>
+                        <h3>Repost Our Tweet #2</h3>
+                        <div id="retweet-2-progress" class="counter-1 progress-cycle" style="display: none;">
+                            <div class="chart" data-percent="0"></div>
+                            <h5>0%</h5>
+                            <span>Reposting Tweet #2</span>
+                        </div>
+                        <div id="retweet-2-info">
+                            <p><i class="fa fa-check-circle-o" aria-hidden="true"></i> Verified Twitter Account</p>
+                            <p><i class="fa fa-check-circle-o" aria-hidden="true"></i> Repost Our Tweet</p>
+                            <p><i class="fa fa-check-circle-o" aria-hidden="true"></i> Task Completed</p>
+                        </div>
+                        <div class="price-btn text-center">
+                            <a href="javascript:void(0);" id="retweet-2"><i class="fa fa-twitter" aria-hidden="true"></i> Repost</a>
+                        </div>
+                    </div>
+                    <div class="info-txt middle-align">
+                        <div id="repostMessage2"></div>
+                    </div>
+                </div>
+                <div id="like-section" class="col-lg-3 col-sm-6 mob-mar-bottom disabled">
+                    <div class="price-table">
+                        <h3><sub>Step 3</sub></h3>
+                        <h3>Like Our Tweet</h3>
+                        <div id="like-progress" class="counter-1 progress-cycle" style="display: none;">
+                            <div class="chart" data-percent="0"></div>
+                            <h5>0%</h5>
+                            <span>Liking Tweet</span>
+                        </div>
+                        <div id="like-info">
+                            <p><i class="fa fa-check-circle-o" aria-hidden="true"></i> Verified Twitter Account</p>
+                            <p><i class="fa fa-check-circle-o" aria-hidden="true"></i> Like Our Tweet</p>
+                            <p><i class="fa fa-check-circle-o" aria-hidden="true"></i> Task Completed</p>
+                        </div>
+                        <div class="price-btn text-center">
+                            <a href="javascript:void(0);" id="like"><i class="fa fa-twitter" aria-hidden="true"></i> Like</a>
+                        </div>
+                    </div>
+                    <div class="info-txt middle-align">
+                        <div id="likeMessage"></div>
+                    </div>
+                </div>
+                <div id="follow-section" class="col-lg-3 col-sm-6 disabled">
+                    <div class="price-table mob-mar-bottom">
+                        <h3><sub>Step 4</sub></h3>
+                        <h3>Follow Our Twitter</h3>
+                        <div id="follow-progress" class="counter-1 progress-cycle" style="display: none;">
+                            <div class="chart" data-percent="0"></div>
+                            <h5>0%</h5>
+                            <span>Following Us</span>
+                        </div>
+                        <div id="follow-info">
+                            <p><i class="fa fa-check-circle-o" aria-hidden="true"></i> Verified Twitter Account</p>
+                            <p><i class="fa fa-check-circle-o" aria-hidden="true"></i> Follow Our Twitter</p>
+                            <p><i class="fa fa-check-circle-o" aria-hidden="true"></i> Task Completed</p>\
+                        </div>
+                        <div class="price-btn text-center">
+                            <a href="javascript:void(0);" id="follow-us"><i class="fa fa-twitter" aria-hidden="true"></i> Follow</a>
+                        </div>
+                    </div>
+                    <div class="info-txt middle-align">
+                        <div id="followMessage"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- FOLLOW AREA ENDS -->
+
     <!-- AIRDROP AREA START -->
     <section id="airdrop">
         <div class="container">
@@ -591,6 +729,7 @@
                                 <div class="blog-item-txt">
                                     <h3>Available Airdrops for Eligible Users</h3>
                                     <p>Join our $Lotso Airdrop and get a chance to receive 100,000 tokens - a unique opportunity to be a part of our growing digital ecosystem!</p>
+                                    <h3>Participants Count: <span id="participantCount" class="airdropNumber">0</span> </h3>
                                     <h3>Airdrops Claimed: <span id="airdropCount" class="airdropNumber">0</span> / <span class="airdropNumber2">2,500,000,000</span></h3>
                                 </div>
                             </div>
@@ -920,7 +1059,7 @@
     </section>
     <!-- PRODUCT AREA ENDS -->
 
-    <!-- TEAM AREA START -->
+    <!-- AUDIO-VISUAL AREA START -->
     <section id="team">
         <div class="container">
             <div class="row header-text text-center team-header">
@@ -965,72 +1104,10 @@
             </div>
         </div>
     </section>
-    <!-- TEAM AREA ENDS -->
+    <!-- AUDIO-VISUAL AREA ENDS -->
 
-    <!-- PRICE AREA START -->
-    <!-- <section id="price">
-        <div class="container">
-            <div class="row header-text text-center">
-                <div class="col-lg-12">
-                    <h3>PRI<span>C</span>ING</h3>
-                </div>
-            </div>
-            <div class="row price-pa">
-                <div class="col-lg-3 col-sm-6">
-                    <div class="price-table mob-mar-bottom">
-                        <h3>Free</h3>
-                        <h4><sub>$</sub>0<sub>/mon</sub></h4>
-                        <p><i class="fa fa-check-circle-o" aria-hidden="true"></i> Limited Time</p>
-                        <p><i class="fa fa-check-circle-o" aria-hidden="true"></i> HD quality Video</p>
-                        <p><i class="fa fa-check-circle-o" aria-hidden="true"></i> 1 Personal Account</p>
-                        <div class="price-btn text-center">
-                            <a href="#">Sign up</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-sm-6">
-                    <div class="price-table mob-mar-bottom">
-                        <h3>Personal</h3>
-                        <h4><sub>$</sub>25<sub>/mon</sub></h4>
-                        <p><i class="fa fa-check-circle-o" aria-hidden="true"></i> Limited Time</p>
-                        <p><i class="fa fa-check-circle-o" aria-hidden="true"></i> HD quality Video</p>
-                        <p><i class="fa fa-check-circle-o" aria-hidden="true"></i> 1 Personal Account</p>
-                        <div class="price-btn text-center">
-                            <a href="#">Purchase</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-sm-6 mob-mar-bottom">
-                    <div class="price-table gold-bg">
-                        <h3 class="gold">Recommend</h3>
-                        <h4><sub>$</sub>99<sub>/Year</sub></h4>
-                        <p><i class="fa fa-check-circle-o" aria-hidden="true"></i> Limited Time</p>
-                        <p><i class="fa fa-check-circle-o" aria-hidden="true"></i> HD quality Video</p>
-                        <p><i class="fa fa-check-circle-o" aria-hidden="true"></i> 1 Personal Account</p>
-                        <div class="price-btn gold-bg2 text-center">
-                            <a href="#">Purchase</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-sm-6">
-                    <div class="price-table">
-                        <h3>Business</h3>
-                        <h4><sub>$</sub>199<sub>/Year</sub></h4>
-                        <p><i class="fa fa-check-circle-o" aria-hidden="true"></i> Limited Time</p>
-                        <p><i class="fa fa-check-circle-o" aria-hidden="true"></i> HD quality Video</p>
-                        <p><i class="fa fa-check-circle-o" aria-hidden="true"></i> 1 Personal Account</p>
-                        <div class="price-btn text-center">
-                            <a href="#">Purchase</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section> -->
-    <!-- PRICE AREA ENDS -->
-
-    <!-- REVIEW AREA START -->
-    <section id="review">
+    <!-- PARTNER AREA START -->
+    <section id="partner">
         <div class="container">
             <div class="row header-text text-center">
                 <div class="col-lg-12">
@@ -1170,9 +1247,9 @@
             </div>
         </div>
     </section>
-    <!-- REVIEW AREA ENDS -->
+    <!-- PARTNER AREA ENDS -->
 
-    <!-- CONTACT AREA START -->
+    <!-- WELFARE AREA START -->
     <section id="contact">
         <div class="container">
             <div class="row header-text text-center">
@@ -1262,7 +1339,7 @@
             </div>
         </div>
     </section>
-    <!-- CONTACT AREA ENDS -->
+    <!-- WELFARE AREA ENDS -->
 
     <!-- SUBSCRIBE AREA START -->
     <section id="subscribe">
@@ -1309,7 +1386,7 @@
                         <ul>
                             <li><a href="#">Home</a></li>
                             <li><a href="#airdrop">Airdrops</a></li>
-                            <li><a href="#review">Partner</a></li>
+                            <li><a href="#partner">Partner</a></li>
                             <li><a href="#subscribe">Subscribe</a></li>
                             <li><a href="documentation/index.html">How to Claim the Airdrop</a></li>
                         </ul>
@@ -1365,7 +1442,10 @@
     <script src="js/address-copy.js"></script>
     <script src="dist/claim-airdrop.bundle.js"></script>
     <script src="js/theme-switch.js"></script>
-    <script src="dist/airdrop-update.bundle.js"></script>
+    <script src="js/airdrop-update.js"></script>
+    <script src="js/twitter-action.js"></script>
+    <script src="js/cookie-consent.js"></script>
+    <script src="js/get-promotion-code.js"></script>
     <script type="text/javascript">
         "use strict";
         $('#ckLine').ckLine({
@@ -1402,6 +1482,31 @@
             <iframe id="youtubeVideo" src="" frameborder="0" allowfullscreen></iframe>
         </div>
     </div>
+
+    <!-- Cookie Consent Modal -->
+    <div class="modal fade" id="cookieConsentModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg cookie-consent-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalLabel">Cookie Consent</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="info-txt">
+                        <p>This website uses cookies to ensure you get the best experience on our website.</p>
+                        <p><strong>Note:</strong> When using incognito mode for browsing, ensure the third-party cookies are allowed, otherwise the Twitter authentication will fail.</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="dropboxx" data-dismiss="modal" onclick="declineCookies();">Decline</button>
+                    <button type="button" class="dropboxx2" onclick="acceptCookies();">Accept</button>
+                </div>
+            </div>
+        </div>
+    </div>
+  
 </body>
 
 </html>

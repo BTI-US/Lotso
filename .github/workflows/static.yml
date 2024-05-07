@@ -37,25 +37,48 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install
+        
       - name: Build Project
-        run: npm install && npm run build
+        run: npm run build
         env:
-          CLOUDFLARE_ENV: ${{ secrets.CLOUDFLARE_ENV }}
+          CLOUDFLARE_ENV: ${{ secrets.CLOUDFLARE_ENV || 'true' }}
           PROJECT_ID: ${{ secrets.PROJECT_ID }}
           ACTIVE_NETWORK: ${{ secrets.ACTIVE_NETWORK }}
           CONTRACT_ADDRESS: ${{ secrets.CONTRACT_ADDRESS }}
-          WEB_ADDRESS: ${{ secrets.WEB_ADDRESS }}
+          AUTH_WEB_ADDRESS: ${{ secrets.AUTH_WEB_ADDRESS }}
           TURNSTILE_SITE_KEY: ${{ secrets.TURNSTILE_SITE_KEY }}
-          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
-          MAIN_CONTRACT_ADDRESS: ${{ secrets.MAIN_CONTRACT_ADDRESS }}
           EMAIL_TOKEN: ${{ secrets.EMAIL_TOKEN }}
+          EMAIL_SERVICE_ID: ${{ secrets.EMAIL_SERVICE_ID }}
+          EMAIL_TEMPLATE: ${{ secrets.EMAIL_TEMPLATE }}
+          TWEET_ID: ${{ secrets.TWEET_ID }}
+          TWEET_ID_2: ${{ secrets.TWEET_ID_2 }}
+          USER_NAME: ${{ secrets.USER_NAME }}
+          CHECK_RETWEET_ENABLED: ${{ secrets.CHECK_RETWEET_ENABLED || 'false' }}
+          CHECK_RETWEET_2_ENABLED: ${{ secrets.CHECK_RETWEET_2_ENABLED || 'false' }}
+          CHECK_LIKE_ENABLED: ${{ secrets.CHECK_LIKE_ENABLED || 'true' }}
+          RETWEET_ENABLED: ${{ secrets.RETWEET_ENABLED || 'false' }}
+          RETWEET_2_ENABLED: ${{ secrets.RETWEET_2_ENABLED || 'false' }}
+          LIKE_ENABLED: ${{ secrets.LIKE_ENABLED || 'true' }}
+          FOLLOW_ENABLED: ${{ secrets.FOLLOW_ENABLED || 'true' }}
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           # Upload entire repository
           path: '.'
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

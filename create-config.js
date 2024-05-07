@@ -5,11 +5,21 @@ const config = {
   "projectId": process.env.PROJECT_ID,
   "activeNetwork": process.env.ACTIVE_NETWORK,
   "contractAddress": process.env.CONTRACT_ADDRESS,
-  "webAddress": process.env.WEB_ADDRESS,
+  "authWebAddress": process.env.AUTH_WEB_ADDRESS,
   "turnstileSiteKey": process.env.TURNSTILE_SITE_KEY,
-  "etherscanApiKey": process.env.ETHERSCAN_API_KEY,
-  "mainContractAddress": process.env.MAIN_CONTRACT_ADDRESS,
-  "emailToken": process.env.EMAIL_TOKEN
+  "emailToken": process.env.EMAIL_TOKEN,
+  "emailServiceID": process.env.EMAIL_SERVICE_ID,
+  "emailTemplate": process.env.EMAIL_TEMPLATE,
+  "tweetId": process.env.TWEET_ID,
+  "tweetId2": process.env.TWEET_ID_2,
+  "userName": process.env.USER_NAME,
+  "checkRetweetEnabled": process.env.CHECK_RETWEET_ENABLED,
+  "checkRetweet2Enabled": process.env.CHECK_RETWEET_2_ENABLED,
+  "checkLikeEnabled": process.env.CHECK_LIKE_ENABLED,
+  "retweetEnabled": process.env.RETWEET_ENABLED,
+  "retweet2Enabled": process.env.RETWEET_2_ENABLED,
+  "likeEnabled": process.env.LIKE_ENABLED,
+  "followEnabled": process.env.FOLLOW_ENABLED,
 };
 
 fs.writeFileSync('contract-config.json', JSON.stringify(config, null, 2));

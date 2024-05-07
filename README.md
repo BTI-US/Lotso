@@ -3,9 +3,39 @@
 [![Deploy static content to Pages](https://github.com/BTI-US/Lotso/actions/workflows/static.yml/badge.svg?branch=master)](https://github.com/BTI-US/Lotso/actions/workflows/static.yml)
 [![CodeQL](https://github.com/BTI-US/Lotso/actions/workflows/codeql.yml/badge.svg)](https://github.com/BTI-US/Lotso/actions/workflows/codeql.yml)
 [![Deploy Worker to Cloudflare](https://github.com/BTI-US/Lotso/actions/workflows/worker.yml/badge.svg)](https://github.com/BTI-US/Lotso/actions/workflows/worker.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-- Last Modified: 2024-03-31
-- Author: Saurabh Kumar
+- Last Modified: 2024-04-22
+- Author: Phill Weston
+
+## Table of Contents
+
+- [Lotso Coins - Leading the PvP Mode](#lotso-coins---leading-the-pvp-mode)
+  - [Table of Contents](#table-of-contents)
+  - [Introduction](#introduction)
+  - [Requirements](#requirements)
+  - [How to Use Webpack to Bundle the Project](#how-to-use-webpack-to-bundle-the-project)
+  - [How to Obtain the Airdrop](#how-to-obtain-the-airdrop)
+  - [WalletConnect API Usage](#walletconnect-api-usage)
+  - [Infura API Usage](#infura-api-usage)
+  - [Network for Our Blockchain](#network-for-our-blockchain)
+    - [Blockchain Information for Base Network](#blockchain-information-for-base-network)
+    - [Blockchain Information for Base Sepolia Network](#blockchain-information-for-base-sepolia-network)
+    - [Supported Blockchain](#supported-blockchain)
+  - [Setting Up for Mail Subscription Service](#setting-up-for-mail-subscription-service)
+  - [Setting Up `contract-config.json` for Local Deployment](#setting-up-contract-configjson-for-local-deployment)
+    - [Step-by-Step Guide](#step-by-step-guide)
+    - [Example File](#example-file)
+  - [Cloud Deployment on GitHub Pages and Cloudflare Pages](#cloud-deployment-on-github-pages-and-cloudflare-pages)
+    - [Required Environment Variables](#required-environment-variables)
+    - [Setting Environment Variables in GitHub](#setting-environment-variables-in-github)
+    - [Deploying to GitHub Pages](#deploying-to-github-pages)
+    - [Setting Environment Variables in Cloudflare Pages](#setting-environment-variables-in-cloudflare-pages)
+    - [Setting Custom Domains in Cloudflare Workers](#setting-custom-domains-in-cloudflare-workers)
+    - [Deploying to Cloudflare Pages](#deploying-to-cloudflare-pages)
+    - [Important Notes](#important-notes)
+  - [Size of Images](#size-of-images)
+  - [License](#license)
 
 ## Introduction
 
@@ -69,9 +99,9 @@ Lotso Coins is a decentralized platform for non-fungible tokens (NFTs), where us
    ```
 Note: After running the command, a `dist` folder will be created in the root directory of the project, and the bundled JavaScript file `bundle.js` will be generated in the `dist` folder. Remember to perform a production build before deploying the project to GitHub Pages.
 
-## Documentation
+## How to Obtain the Airdrop
 
-Click [here](https://lotso.org/documentation/index.html) to view the documentation.
+Click [here](https://lotso.org/documentation/index.html) to view the detailed documentation on how to obtain the airdrop.
 
 ## WalletConnect API Usage
 
@@ -123,38 +153,41 @@ Refer to the [Base Sepolia Network](https://github.com/wevm/viem/blob/main/src/c
 
 Click [here](https://github.com/WalletConnect/blockchain-api/blob/master/SUPPORTED_CHAINS.md) to view the supported blockchain for WalletConnect.
 
-## JSON Protocol
+## Setting Up for Mail Subscription Service
 
-### Body Parameters
+Here is the detailed step about how to configure the backend mail server for GitHub Pages (or other web services that only support frontend pages).
 
-```json
-{
-    "code": 0,
-    "message": "Success",
-    "error": "",
-    "data": {
-        "address": "0xbA6a68677e0A16dcB1ff4BDDF613563133201280",
-        "transaction_count": 8552,
-        "airdrop_count": 100000000000000000000000,
-        "has_airdropped": false,
-        "scheduled_delivery": "2024-03-31T11:00:00Z"
-    }
-}
-```
-
-### Description
-
-| Field              | Type    | Description                                                                                      |
-|--------------------|---------|--------------------------------------------------------------------------------------------------|
-| `code`             | Integer | The status code of the response. `0` indicates a successful response.                             |
-| `message`          | String  | The status message associated with the response. `Success` indicates a successful operation.      |
-| `error`            | String  | Contains error message if any error occurs, otherwise empty.                                      |
-| `data`             | Object  | A container for the data payload of the response.                                                 |
-| `data.address`     | String  | The blockchain address associated with the query.                                                 |
-| `data.transaction_count` | Integer | The number of transactions associated with the address.                                     |
-| `data.airdrop_count`| Integer | The airdrop count for the address, which is either `0` or `100000000000000000000000` (100000 * 10^18).                           |
-| `data.has_airdropped` | Boolean | Indicates if the airdrop has occurred. `false` means airdrop has not started; `true` means airdrop has occurred, and the user cannot claim it again if already claimed. |
-| `data.scheduled_delivery` | String | The next available time for claiming the airdrop. If it cannot be claimed (transaction_count <= 10), it will be set to 1970-01-01T08:00:00Z in UTC+0 timezone. |
+1. Generate HTML Mail Template (Postcards)
+    
+    [Postcards - Designmodo](https://designmodo.com/postcards/app/)
+    
+    After editing the contents, export as a ZIP file with the images and HTML files together.
+    
+2. Domain Email Account Registration and SMTP Server Setting
+    
+    [GoDaddy Webmail](https://email.godaddy.com/)
+    
+3. Use EmailJS for Email Backend Service
+    
+    Basic Setting
+    
+    [Send email directly from your code | EmailJS](https://www.emailjs.com/)
+    
+    REST API Documentation
+    
+    [/send API | EmailJS](https://www.emailjs.com/docs/rest-api/send/)
+    
+    Note: 
+    
+    - SMTP.js only supports elasticemail as its backend SMTP mail server, no third-party SMTP server is supported.
+    - The limitation of the content body of EmailJS is no more than 50kb, be sure the size of the HTML file is less than the threshold.
+    - We can use the following website to shrink the size of the HTML file by removing the unnecessary characters (like white space, etc)
+        
+        [HTML Compressor - Reduce the size of HTML, CSS, JavaScript, PHP and Smarty code.](https://htmlcompressor.com/compressor/)
+        
+4. Backblaze B2 OBS Bucket for Image Storage
+    
+    We need to upload the images extracted from the downloaded ZIP file to the OBS bucket and replace all of the image paths from the relative path to the HTTPS path, which can be obtained through the detailed property of the file in the OBS bucket.
 
 ## Setting Up `contract-config.json` for Local Deployment
 
@@ -169,19 +202,37 @@ To successfully deploy and run the project locally, you need to create a `contra
    - Open the file in a text editor and add the following JSON structure:
      ```json
      {
-         "_comment": "Configuration settings for blockchain interaction and Turnstile widget. 'projectId' is the unique identifier for the project, 'activeNetwork' specifies the blockchain network (like 'baseMainnet' for Base Mainnet or 'baseSepolia' for Sepolia Base Testnet or 'sepolia' for Sepolia Main Testnet), 'contractAddress' is the address of the smart contract, 'webAddress' is the API endpoint for transaction counts, and 'turnstileSiteKey' is the site key for the Cloudflare Turnstile widget.",
+         "_comment": "Configuration settings for blockchain interaction and Turnstile widget. 'projectId' is the unique identifier for the project, 'activeNetwork' specifies the blockchain network (like 'baseMainnet' for Base Mainnet or 'baseSepolia' for Sepolia Base Testnet or 'sepolia' for Sepolia Main Testnet), 'contractAddress' is the address of the smart contract, 'authWebAddress' is the API endpoint for backend authentication server, and 'turnstileSiteKey' is the site key for the Cloudflare Turnstile widget.",
          "activeNetwork": "Your_Network_Choice",
          "contractAddress": "Your_Contract_Address",
-         "webAddress": "Your_Web_Address",
+         "authWebAddress": "Your_Web_Address",
          "turnstileSiteKey": "Your_CloudFlare_Turnstile_Site_Key",
-         "etherscanApiKey": "Your_Etherscan_API_Key",
          "emailToken": "Your_Email_Token",
+         "emailServiceID": "Your_Email_Service_ID",
+         "emailTemplate": "Your_Email_Template",
+         "tweetId": "Your_Tweet_Id",
+         "tweetId2": "Your_Second_Tweet_Id",
+         "userName": "Your_User_Name",
+         "checkRetweetEnabled": "false",
+         "checkRetweet2Enabled": "false",
+         "checkLikeEnabled": "true",
+         "checkFollowEnabled": "true",
+         "retweetEnabled": "false",
+         "retweet2Enabled": "false",
+         "likeEnabled": "true",
+         "followEnabled": "true"
      }
      ```
    - Replace `Your_Network_Choice` with the network you are using (e.g., `base` for the Base Mainnet).
    - Replace `Your_Contract_Address` with the actual contract address you are using.
    - Replace `Your_Web_Address` with the web address for airdrop eligibility check.
    - Replace `Your_CloudFlare_Turnstile_Site_Key` with the site key for the Cloudflare Turnstile widget.
+   - Replace `Your_Email_Token` with the token for sending emails.
+   - Replace `Your_Email_Service_ID` with the service ID for sending emails, for example: `lotso_email`.
+   - Replace `Your_Email_Template` with the email template name, for example: `lotso_email_template`.
+   - Replace `Your_Tweet_Id` with the tweet ID for the target tweet.
+   - Replace `Your_Second_Tweet_Id` with the second tweet ID for the target tweet.
+   - Replace `Your_User_Name` with the user ID for the target user.
 
 3. **Save the File:**
    - Save your changes to `contract-config.json`.
@@ -202,14 +253,26 @@ Here is an example of what your `contract-config.json` might look like for the B
 
 ```json
 {
-    "_comment": "Configuration settings for blockchain interaction and Turnstile widget. 'projectId' is the unique identifier for the project, 'activeNetwork' specifies the blockchain network (like 'baseMainnet' for Base Mainnet or 'baseSepolia' for Sepolia Base Testnet or 'sepolia' for Sepolia Main Testnet), 'contractAddress' is the address of the smart contract, 'webAddress' is the API endpoint for transaction counts, and 'turnstileSiteKey' is the site key for the Cloudflare Turnstile widget.",
+    "_comment": "Configuration settings for blockchain interaction and Turnstile widget. 'projectId' is the unique identifier for the project, 'activeNetwork' specifies the blockchain network (like 'baseMainnet' for Base Mainnet or 'baseSepolia' for Sepolia Base Testnet or 'sepolia' for Sepolia Main Testnet), 'contractAddress' is the address of the smart contract, 'authWebAddress' is the API endpoint for backend authentication server, and 'turnstileSiteKey' is the site key for the Cloudflare Turnstile widget.",
     "projectId": "0x123abc456def789ghi",
     "activeNetwork": "baseMainnet",
     "contractAddress": "0x123abc456def789ghi",
-    "webAddress": "https://flxdu.cn:8011/v1/info/transaction_count",
+    "authWebAddress": "https://api.btiplatform.com",
     "turnstileSiteKey": "0x123abc456def789ghi",
-    "etherscanApiKey": "0x123abc456def789ghi",
-    "emailToken": "0x123abc456def789ghi"
+    "emailToken": "0x123abc456def789ghi",
+    "emailServiceID": "lotso_email",
+    "emailTemplate": "lotso_email_template",
+    "tweetId": "0x123abc456def789ghi",
+    "tweetId2": "0x123abc456def789ghi",
+    "userName": "0x123abc456def789ghi",
+    "checkRetweetEnabled": "false",
+    "checkRetweet2Enabled": "false",
+    "checkLikeEnabled": "true",
+    "checkFollowEnabled": "true",
+    "retweetEnabled": "false",
+    "retweet2Enabled": "false",
+    "likeEnabled": "true",
+    "followEnabled": "true"
 }
 ```
 
@@ -230,10 +293,21 @@ This section provides guidance on deploying your project to GitHub Pages and Clo
    |**`CONTRACT_ADDRESS`**|Essential|The Ethereum smart contract address the web application interacts with.|
    |**`PROJECT_ID`**|Essential|A unique identifier obtained from WalletConnect, used for WalletConnect API calls.|
    |**`TURNSTILE_SITE_KEY`**|Essential|The site key for Cloudflare's Turnstile service, used for bot protection and CAPTCHA verification.|
-   |**`WEB_ADDRESS`**|Essential|The backend URL of the airdrop function, better to use the specified domain for the project for clearer identification.|
-   |**ETHERSCAN_API_KEY**|Essential|The API key for Etherscan, used to interact with the Ethereum network.|
-   |**MAIN_CONTRACT_ADDRESS**|Essential|The main contract of the $Lotso NFT|
-   |**EMAIL_TOKEN**|Essential|The token for sending emails|
+   |**`AUTH_WEB_ADDRESS`**|Essential|The backend URL of the authentication function, used for verifying user credentials.|
+   |**`EMAIL_TOKEN`**|Essential|The token for sending emails|
+   |**`EMAIL_SERVICE_ID`**|Essential|The service ID for sending emails|
+   |**`EMAIL_TEMPLATE`**|Essential|The email template name|
+   |**`TWEET_ID`**|Essential|The tweet ID for the target tweet|
+   |**`TWEET_ID2`**|Essential|The second tweet ID for the target tweet|
+   |**`USER_NAME`**|Essential|The user name for the target user|
+   |**`CHECK_RETWEET_ENABLED`**|Optional|Indicates if the retweet check is enabled, "false" by default|
+   |**`CHECK_RETWEET_2_ENABLED`**|Optional|Indicates if the retweet check is enabled, "false" by default|
+   |**`CHECK_LIKE_ENABLED`**|Optional|Indicates if the like check is enabled, "true" by default|
+   |**`CHECK_FOLLOW_ENABLED`**|Optional|Indicates if the follow check is enabled, "true" by default|
+   |**`RETWEET_ENABLED`**|Optional|Indicates if the retweet is enabled, "false" by default|
+   |**`RETWEET_2_ENABLED`**|Optional|Indicates if the retweet is enabled, "false" by default|
+   |**`LIKE_ENABLED`**|Optional|Indicates if the like is enabled, "true" by default|
+   |**`FOLLOW_ENABLED`**|Optional|Indicates if the follow is enabled, "true" by default|
 
 2. Used for Reverse Proxy
 
@@ -242,7 +316,11 @@ This section provides guidance on deploying your project to GitHub Pages and Clo
    |**`CLOUDFLARE_ACCOUNT_ID`**|Essential|The account ID for Cloudflare, used to authenticate and manage resources via Cloudflare APIs.|
    |**`CLOUDFLARE_API_TOKEN`**|Essential|A token used to authenticate API requests to Cloudflare, allowing to interact with Cloudflare worker services.|
    |**`CLOUDFLARE_WORKER_NAME`**|Optional|The name of a Cloudflare Worker, if used, which can execute serverless code at the edge for tasks like routing or custom caching, "api" by default|
-   |**`SERVER_HTTP_PORT`**|Optional|The port number on which the reverse proxy server listens for HTTP traffic, "8080" by default|
+   |**`AIRDROP_SERVER_HTTP_PORT`**|Essential|The port number on which the reverse proxy server listens for HTTP traffic of production website, "8080" by default|
+   |**`AIRDROP_SERVER_HTTP_PORT2`**|Essential|The second port number on which the reverse proxy server listens for HTTP traffic of test website, "8081" by default|
+   |**`TWITTER_SERVER_HTTP_PORT`**|Essential|The port number on which the reverse proxy server listens for HTTP traffic of Twitter server, "5000" by default|
+   |**`TWITTER_SERVER_HTTP_PORT2`**|Essential|The second port number on which the reverse proxy server listens for HTTP traffic of Twitter server, "5001" by default|
+   |**`GANACHE_HTTP_PORT`**|Essential|The port number on which the reverse proxy server listens for HTTP traffic of Ganache server, "8546" by default|
 
 ### Setting Environment Variables in GitHub
 
@@ -251,7 +329,7 @@ This section provides guidance on deploying your project to GitHub Pages and Clo
 3. Click on "New repository secret" and add each environment variable:
    - Name: Variable name (e.g., `PROJECT_ID`).
    - Value: Corresponding value for the variable.
-4. Repeat this process for `ACTIVE_NETWORK`, `CONTRACT_ADDRESS`, `WEB_ADDRESS` and `TURNSTILE_SITE_KEY` and others.
+4. Repeat this process for `ACTIVE_NETWORK`, `CONTRACT_ADDRESS`, `AUTH_WEB_ADDRESS`, `TURNSTILE_SITE_KEY` and others.
 
 ### Deploying to GitHub Pages
 
@@ -264,6 +342,15 @@ This section provides guidance on deploying your project to GitHub Pages and Clo
 2. Select your project and go to "Settings" > "Environment variables" (under "Build & deploy").
 3. Add each variable by specifying its Name and Value.
 4. Particularly, ensure `CLOUDFLARE_ENV` is set to `true`.
+
+### Setting Custom Domains in Cloudflare Workers
+
+1. Go to your Cloudflare account and access the Workers dashboard.
+2. Select your worker (by default the worker name is set to 'api') and go to "Settings" > "Triggers".
+3. Add the following custom domains for the worker to route traffic accordingly.
+   - `api.btiplatform.com`
+   - `api-dev.btiplatform.com`
+   - `ganache.btiplatform.com`
 
 ### Deploying to Cloudflare Pages
 
@@ -306,3 +393,6 @@ Replaced Image Sizes:
 - testimonial2.png - 90x89
 - testimonial3.png - 90x89
 - blog1.jpg - 620x420
+
+## License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
