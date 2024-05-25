@@ -7,7 +7,47 @@ import { Fireworks } from 'fireworks-js';
 // 1. Get a project ID at https://cloud.walletconnect.com
 let projectId, activeNetwork, contractAddress, authWebAddress, turnstileSiteKey;
 let tweetId, tweetId2, userName;
-let checkRetweetEnabled, checkRetweet2Enabled, checkLikeEnabled;
+let checkActionsEnabled = {};
+
+// Updated contract ABI to include getAirdropAmount function
+const airdropAcquireABI = [
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+            }
+        ],
+        "name": "getAirdropAmount",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    }
+];
+
+// Contract ABI for claimAirdrop
+const airdropContractABI = [
+    {
+        "inputs": [],
+        "name": "claimAirdrop",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    }
+];
 
 try {
     // Attempt to load the configuration file
@@ -24,9 +64,11 @@ try {
     userName = jsonConfig.userName;
 
     // Access additional properties for Twitter checks and actions
-    checkRetweetEnabled = jsonConfig.checkRetweetEnabled;
-    checkRetweet2Enabled = jsonConfig.checkRetweet2Enabled;
-    checkLikeEnabled = jsonConfig.checkLikeEnabled;
+    checkActionsEnabled = {
+        checkRetweet: jsonConfig.checkRetweetEnabled,
+        checkRetweet2: jsonConfig.checkRetweet2Enabled,
+        checkLike: jsonConfig.checkLikeEnabled
+    };
 
     // Additional validation can be performed here as needed
     if (!activeNetwork || !contractAddress || !authWebAddress || !turnstileSiteKey || !projectId) {
@@ -37,8 +79,8 @@ try {
         throw new Error("Required configuration values (tweetId or tweetId2 or userName) are missing.");
     }
 
-    if (!checkRetweetEnabled || !checkRetweet2Enabled || !checkLikeEnabled) {
-        throw new Error("Required configuration values (checkRetweetEnabled or checkRetweet2Enabled or checkLikeEnabled) are missing.");
+    if (Object.values(checkActionsEnabled).includes(false)) {
+        throw new Error("Required configuration values (checkRetweetEnabled, checkRetweet2Enabled, or checkLikeEnabled) are missing.");
     }
 } catch (error) {
     // Check if the error is due to missing file
@@ -61,14 +103,17 @@ const metadata = {
 
 let chains;
 
-if (activeNetwork === 'baseMainnet') {
-    chains = [base];
-} else if (activeNetwork === 'baseSepolia') {
-    chains = [baseSepolia];
-} else if (activeNetwork === 'sepolia') {
-    chains = [sepolia];
-} else if (activeNetwork === 'ganache') {
-    chains = [ganacheTestChain];
+const networkChainMap = {
+    // Network name: [chain_config]
+    baseMainnet: [base],
+    baseSepolia: [baseSepolia],
+    sepolia: [sepolia],
+    ganache: [ganacheTestChain]
+};
+
+// Check if the active network is in the networkChainMap
+if (Object.prototype.hasOwnProperty.call(networkChainMap, activeNetwork)) {
+    chains = networkChainMap[activeNetwork];
 } else {
     console.log('Invalid network selection');
     process.exit(1);
@@ -114,7 +159,8 @@ const acceptBtn = document.getElementById('connectAccept');
 const declineBtn = document.getElementById('connectDecline');
 const connectTitle = document.getElementById('walletAddressTitle');
 const airdrop = document.getElementById('airdropSection');
-const gotoAirdrop = document.getElementById('gotoSection');
+const claimReward = document.getElementById('claimReward');
+const totalAirdropReward = document.getElementById('totalAirdropReward');
 
 if (acceptBtn) {
     acceptBtn.addEventListener('click', function() {
@@ -141,39 +187,61 @@ function escapeHtml(str) {
                 .replace(/'/g, "&#039;");
 }
 
+async function checkRewardAmount(address) {
+    try {
+        const url = authWebAddress + `/check-reward-amount?address=${encodeURIComponent(address)}`;
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+
+        if (data.code === 0 && data.data.totalRewardAmount != null) {
+            return data.data.totalRewardAmount;
+        }
+        
+        throw new Error(data.error || data.message || 'Unknown error occurred, code:', data.code);
+    } catch (error) {
+        console.error('Failed:', error.message);
+        return 0;
+    }
+}
+
 // listening for account changes
 watchAccount(config,
     {
         onChange(account) {
             let truncatedAddress;
-            if (hint2) {
-                let address = account.address ?? '';
-                // Check if the username length exceeds 15 characters
-                if (address.length > 15) {
-                    // Truncate the username to the first 5 characters, an ellipsis, and the last 5 characters
-                    truncatedAddress = address.substring(0, 5) + '...' + address.substring(address.length - 5);
-                } else {
-                    // If the username is 15 characters or less, use it as is
-                    truncatedAddress = address;
-                }
-
-                let addressHtml = '<div class="address-container">';
-                addressHtml += '<input id="address" type="text" value="' + escapeHtml(address) + '" readonly data-full-address="' + escapeHtml(address) + '">';
-                addressHtml += '<button onclick="copyAddress(event)"><i class="fa fa-copy"></i></button>';
-                addressHtml += '</div>';
-
-                hint2.innerHTML = addressHtml;
-            }
             if (acceptBtn) {
                 if (account.isConnected) {
                     hint1.innerText = 'Your wallet address is:';
+                    if (hint2) {
+                        let address = account.address ?? '';
+                        // Check if the username length exceeds 15 characters
+                        if (address.length > 15) {
+                            // Truncate the username to the first 5 characters, an ellipsis, and the last 5 characters
+                            truncatedAddress = address.substring(0, 5) + '...' + address.substring(address.length - 5);
+                        } else {
+                            // If the username is 15 characters or less, use it as is
+                            truncatedAddress = address;
+                        }
+        
+                        let addressHtml = '<div class="address-container">';
+                        addressHtml += '<input id="address" type="text" value="' + escapeHtml(address) + '" readonly data-full-address="' + escapeHtml(address) + '">';
+                        addressHtml += '<button onclick="copyAddress(event)"><i class="fa fa-copy"></i></button>';
+                        addressHtml += '</div>';
+        
+                        hint2.innerHTML = addressHtml;
+                    }
                     acceptBtn.innerText = 'Disconnect';
                     connectBtn.innerText = truncatedAddress;
                     connectTitle.innerText = 'Account Information';
                     declineBtn.innerText = 'Close';
                     airdrop.style.display = 'block';
-                    // TODO: Temporarily disable this button
-                    gotoAirdrop.style.display = 'none';
+                    claimReward.style.display = 'block';
+                    (async function() {
+                        totalAirdropReward.innerText = await checkRewardAmount(account.address);
+                    })();
                     // Hide the continue button after connecting the wallet
                     airdropHint1.style.display = 'none';
                 } else {
@@ -184,7 +252,8 @@ watchAccount(config,
                     connectTitle.innerText = 'Notes Before Connecting';
                     declineBtn.innerText = 'Decline';
                     airdrop.style.display = 'none';
-                    gotoAirdrop.style.display = 'none';
+                    claimReward.style.display = 'none';
+                    totalAirdropReward.innerText = 0;
                     // Show the continue button before connecting the wallet
                     airdropHint1.style.display = 'block';
                 }
@@ -197,29 +266,6 @@ let airdropAmount = 0;
 let twitterSteps = 0;
 
 async function initiateTransaction() {
-    // Updated contract ABI to include getAirdropAmount function
-    const airdropAcquireABI = [
-        {
-            "inputs": [
-                {
-                    "internalType": "address",
-                    "name": "account",
-                    "type": "address"
-                }
-            ],
-            "name": "getAirdropAmount",
-            "outputs": [
-                {
-                    "internalType": "uint256",
-                    "name": "",
-                    "type": "uint256"
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function"
-        }
-    ];
-
     displayMessage('Waiting for user confirmation', 'info');
 
     try {
@@ -237,7 +283,7 @@ async function initiateTransaction() {
         console.log('Airdrop Amount:', contractReadResult);
         updateProgressBar(50, 'green');
         if (contractReadResult === BigInt(0)) {
-            displayMessage('You have already claimed your airdrop.', 'info');
+            displayMessage('You have already claimed your airdrop or you are not eligible to claim.', 'info');
             updateProgressBar(100, 'red');
         } else {
             const divisor = BigInt("1000000000000000000");
@@ -252,24 +298,7 @@ async function initiateTransaction() {
     }
 }
 
-async function confirmTransaction() {    
-    // Contract ABI for claimAirdrop
-    const airdropContractABI = [
-        {
-            "inputs": [],
-            "name": "claimAirdrop",
-            "outputs": [
-                {
-                    "internalType": "uint256",
-                    "name": "",
-                    "type": "uint256"
-                }
-            ],
-            "stateMutability": "nonpayable",
-            "type": "function"
-        }
-    ];
-
+async function confirmTransaction() {
     displayMessage('Processing airdrop claim...', 'info');
 
     try {
@@ -313,9 +342,8 @@ async function confirmTransaction() {
                 console.log('Promotion code must be 16 characters long.');
                 return;
             }
-            let url = null;
             if (promotionCode && twitterSteps !== 0) {
-                url = authWebAddress + `/send-airdrop-parent?address=${encodeURIComponent(fullAddress)}`;
+                const url = authWebAddress + `/send-airdrop-parent?address=${encodeURIComponent(fullAddress)}`;
                 
                 const response = await fetch(url, { credentials: 'include' });
                 if (!response.ok) {
@@ -359,11 +387,11 @@ function displayMessage(message, type) {
             messageElement.classList.add('error-message');
         }
 
-        // Clear the message after 10 seconds
+        // Clear the message after 30 seconds
         setTimeout(() => {
             messageElement.innerText = ''; // Clear the text
             messageElement.className = ''; // Also clear any class that was added
-        }, 10000);
+        }, 30000);
     }
 }
 
@@ -452,18 +480,19 @@ async function checkUserEligibility() {
                 throw new Error('The obtained address does not match the sent address, please refresh the browser cache and retry.');
             }
 
-            if (data.code === 0) {
-                // Check if the user has already claimed the airdrop
-                const airdropCheck = await checkIfClaimedAirdrop(fullAddress);
-                if (airdropCheck.success) {
-                    console.log('User has already claimed the airdrop');
-                    updateProgressBar(100, 'red');
-                    displayMessage('You have already claimed the airdrop with this user', 'info');
-                    return;
-                } else {
-                    console.log('User has not claimed the airdrop yet');
-                }
-            }
+            // Note: We do not perform the check for claimed airdrop here
+            // if (data.code === 0) {
+            //     // Check if the user has already claimed the airdrop
+            //     const airdropCheck = await checkIfClaimedAirdrop(fullAddress);
+            //     if (airdropCheck.success) {
+            //         console.log('User has already claimed the airdrop');
+            //         updateProgressBar(100, 'red');
+            //         displayMessage('You have already claimed the airdrop with this user', 'info');
+            //         return;
+            //     } else {
+            //         console.log('User has not claimed the airdrop yet');
+            //     }
+            // }
 
             // Awaiting the result of Twitter interaction checks
             if (scheduledDelivery.toISOString() === "1970-01-01T08:00:00Z") {
@@ -603,23 +632,23 @@ async function logAirdrop(address) {
     }
 }
 
-async function checkIfClaimedAirdrop(address) {
-    try {
-        const response = await fetch(`${authWebAddress}/check-airdrop?address=${address}`, { credentials: 'include' });
-        // Use handleResponse to process the fetch response
-        const result = await handleResponse(response);
+// async function checkIfClaimedAirdrop(address) {
+//     try {
+//         const response = await fetch(`${authWebAddress}/check-airdrop?address=${address}`, { credentials: 'include' });
+//         // Use handleResponse to process the fetch response
+//         const result = await handleResponse(response);
 
-        // Now proceed with your business logic
-        if (result.data.hasClaimed) {
-            return { success: true, error: false, message: 'All checks passed!' };
-        } else {
-            return { success: false, error: false, message: 'Airdrop has not been claimed.' };
-        }
-    } catch (error) {
-        console.error('Failed:', error.message);
-        throw error;
-    }
-}
+//         // Now proceed with your business logic
+//         if (result.data.hasClaimed) {
+//             return { success: true, error: false, message: 'All checks passed!' };
+//         } else {
+//             return { success: false, error: false, message: 'Airdrop has not been claimed.' };
+//         }
+//     } catch (error) {
+//         console.error('Failed:', error.message);
+//         throw error;
+//     }
+// }
 
 async function checkIfPurchased(address) {
     try {
@@ -642,43 +671,24 @@ async function checkIfPurchased(address) {
 async function checkTwitterInteractions(tweetId, tweetId2) {
     try {
         let step_cnt = 0;
-        if (checkRetweet2Enabled === "true") {
-            const isRetweeted2 = await checkRetweet(tweetId2);
-            console.log('Retweet check:', isRetweeted2);
-            if (!isRetweeted2) {
-                console.log('Tweet2 has not been retweeted by the user.');
-            } else {
-                step_cnt++;
+        const actionsMap = {
+            checkRetweet2: { action: 'retweet', responseKey: 'isRetweeted', tweetId: tweetId2, message: 'Tweet2 has not been retweeted by the user.' },
+            checkLike: { action: 'like', responseKey: 'isLiked', tweetId: tweetId, message: 'Tweet is not liked by the user.' },
+            checkRetweet: { action: 'retweet', responseKey: 'isRetweeted', tweetId: tweetId, message: 'Tweet has not been retweeted by the user.' },
+            //checkBookmark: { action: 'bookmark', responseKey: 'isBookmarked', tweetId: tweetId, message: 'Tweet has not been bookmarked by the user.' }
+        };
+        
+        for (let action in actionsMap) {
+            if (checkActionsEnabled[action] === "true") {
+                const isActionDone = await checkAction(actionsMap[action].action, actionsMap[action].tweetId, actionsMap[action].responseKey);
+                console.log(`${action} check:`, isActionDone);
+                if (!isActionDone) {
+                    console.log(actionsMap[action].message);
+                } else {
+                    step_cnt++;
+                }
             }
         }
-
-        if (checkLikeEnabled === "true") {
-            const isLiked = await checkLike(tweetId);
-            console.log('Like check:', isLiked);
-            if (!isLiked) {
-                console.log('Tweet is not liked by the user.');
-            } else {
-                step_cnt++;
-            }
-        }
-
-        if (checkRetweetEnabled === "true") {
-            const isRetweeted = await checkRetweet(tweetId);
-            console.log('Retweet check:', isRetweeted);
-            if (!isRetweeted) {
-                console.log('Tweet has not been retweeted by the user.');
-            } else {
-                step_cnt++;
-            }
-        }
-
-        // const isBookmarked = await checkBookmark(tweetId);
-        // console.log('Bookmark check:', isBookmarked);
-        // if (!isBookmarked) {
-        //     console.log('Tweet has not been bookmarked by the user.');
-        // } else {
-        //     step_cnt++;
-        // }
 
         console.log('Checks passed steps: ', step_cnt);
         if (step_cnt === 0) {
@@ -692,28 +702,10 @@ async function checkTwitterInteractions(tweetId, tweetId2) {
     }
 }
 
-// function checkFollow(targetUserName) {
-//     return fetch(`${authWebAddress}/check-follow?userName=${targetUserName}`, { credentials: 'include' })
-//         .then(handleResponse)
-//         .then(response => response.data.isFollowing);
-// }
-
-// function checkBookmark(tweetId) {
-//     return fetch(`${authWebAddress}/check-bookmark?tweetId=${tweetId}`, { credentials: 'include' })
-//         .then(handleResponse)
-//         .then(response => response.data.isBookmarked);
-// }
-
-function checkLike(tweetId) {
-    return fetch(`${authWebAddress}/check-like?tweetId=${tweetId}`, { credentials: 'include' })
+function checkAction(action, tweetId, responseKey) {
+    return fetch(`${authWebAddress}/check-${action}?tweetId=${tweetId}`, { credentials: 'include' })
         .then(handleResponse)
-        .then(response => response.data.isLiked);
-}
-
-function checkRetweet(tweetId) {
-    return fetch(`${authWebAddress}/check-retweet?tweetId=${tweetId}`, { credentials: 'include' })
-        .then(handleResponse)
-        .then(response => response.data.isRetweeted);
+        .then(response => response.data[responseKey]);
 }
 
 function handleResponse(response) {
